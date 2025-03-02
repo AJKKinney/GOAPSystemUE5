@@ -9,6 +9,7 @@
 class UGOAPPlanner;
 class UGOAPAction;
 class UGOAPWorldState;
+class UGOAPGoal;
 
 UCLASS()
 class GOAPSYSTEM_API AGOAPAgent : public ACharacter
@@ -27,6 +28,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GOAP")
 	TArray<UGOAPAction*> AvailableActions;
 
+	/// <summary>
+	/// Goals are listed in order of priority with the goal at index of 0 being the highest priority
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GOAP")
+	TArray<UGOAPGoal*> Goals;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -36,15 +43,15 @@ public:
 
 private:
 	UPROPERTY()
-	UGOAPPlanner* Planner;
+	UGOAPPlanner* ActionPlanner;
 
 	UPROPERTY()
 	UGOAPWorldState* CurrentWorldState;
 
-	TArray<UGOAPAction*> CurrentPlan;
+	TArray<UGOAPAction*> CurrentActionPlan;
 	int32 CurrentActionIndex;
 
 
+	UGOAPGoal* FindValidGoal();
 	void ExecuteNextAction();
-
 };

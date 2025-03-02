@@ -4,9 +4,9 @@
 #include "GOAPWorldState.h"
 
 
-bool UGOAPWorldState::MatchesGoal(TMap<FString, bool> Goal) const
+bool UGOAPWorldState::MatchesDesiredState(UGOAPWorldState* DesiredState) const
 {
-    for (const auto& Condition : Goal)
+    for (const auto& Condition : DesiredState->State)
     {
         if (!State.Contains(Condition.Key) || State[Condition.Key] != Condition.Value)
         {

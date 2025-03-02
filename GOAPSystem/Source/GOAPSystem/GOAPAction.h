@@ -24,7 +24,7 @@ public:
     TMap<FString, bool> Effects;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Cost = 1.0f;
+    float ActionDefaultCost = 1.0f;
 
     // Check if the action can be performed (based on preconditions)
     UFUNCTION(BlueprintCallable, Category = "GOAP")

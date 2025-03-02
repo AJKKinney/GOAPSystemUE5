@@ -5,6 +5,7 @@
 #include "GOAPAction.h"
 #include "GOAPPlanner.h"
 #include "GOAPWorldState.h"
+#include "GOAPGoal.h"
 
 // Sets default values
 AGOAPAgent::AGOAPAgent()
@@ -12,9 +13,8 @@ AGOAPAgent::AGOAPAgent()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	Planner = CreateDefaultSubobject<UGOAPPlanner>(TEXT("GOAP Planner"));
+	ActionPlanner = CreateDefaultSubobject<UGOAPPlanner>(TEXT("GOAP Planner"));
 	CurrentWorldState = CreateDefaultSubobject<UGOAPWorldState>(TEXT("GOAP World State"));
-
 }
 
 // Called when the game starts or when spawned
@@ -22,18 +22,14 @@ void AGOAPAgent::BeginPlay()
 {
 	Super::BeginPlay();
 
-    // Define AI's goal
-    TMap<FString, bool> Goal;
-    Goal.Add("HasWeapon", true);
-
     if (CurrentWorldState)
     {
-        // Define world state
-        CurrentWorldState->State.Add("HasWeapon", false);
-        if (Planner)
+        UGOAPGoal* Goal = FindValidGoal();
+
+        if (ActionPlanner)
         {
             // Generate plan using A*
-            CurrentPlan = Planner->Plan(this, CurrentWorldState, Goal);
+            CurrentActionPlan = ActionPlanner->CreatePlan(this, CurrentWorldState, Goal);
             CurrentActionIndex = 0;
         }
     }
@@ -48,11 +44,23 @@ void AGOAPAgent::Tick(float DeltaTime)
 
 }
 
+UGOAPGoal* AGOAPAgent::FindValidGoal()
+{
+    for (UGOAPGoal* Goal : Goals)
+    {
+        if (Goal->IsAchievable(CurrentWorldState))
+        {
+            return Goal;
+        }
+    }
+    return nullptr;
+}
+
 void AGOAPAgent::ExecuteNextAction()
 {
-    if (CurrentPlan.IsValidIndex(CurrentActionIndex))
+    if (CurrentActionPlan.IsValidIndex(CurrentActionIndex))
     {
-        CurrentPlan[CurrentActionIndex]->PerformAction(this);
+        CurrentActionPlan[CurrentActionIndex]->PerformAction(this);
         CurrentActionIndex++;
     }
 }

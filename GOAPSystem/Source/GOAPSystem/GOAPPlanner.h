@@ -13,6 +13,7 @@
 class UGOAPAction;
 class UGOAPWorldState;
 class AGOAPAgent;
+class UGOAPGoal;
 
 UCLASS()
 class GOAPSYSTEM_API UGOAPPlanner : public UObject
@@ -20,8 +21,8 @@ class GOAPSYSTEM_API UGOAPPlanner : public UObject
 	GENERATED_BODY()
 
 public:
-	TArray<UGOAPAction*> Plan(AGOAPAgent* Agent, UGOAPWorldState* CurrentState, TMap<FString, bool> Goal);
+	TArray<UGOAPAction*> CreatePlan(AGOAPAgent* Agent, UGOAPWorldState* CurrentState, UGOAPGoal* Goal);
 
 private:
-	float HeuristicCost(UGOAPWorldState* State, TMap<FString, bool> Goal);
+	float CalculateHeuristicCost(UGOAPWorldState* CurrentWorldState, UGOAPWorldState* DesiredState);
 };

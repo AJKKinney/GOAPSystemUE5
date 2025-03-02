@@ -9,13 +9,14 @@
 /**
  * 
  */
+
 UCLASS()
 class GOAPSYSTEM_API UGOAPWorldState : public UObject
 {
 	GENERATED_BODY()
 	
 public:
-	TMap<FString, bool> State;
+	TMap<FString, bool> State{};
 
-	bool MatchesGoal(TMap<FString, bool> Goal) const;
+	bool MatchesDesiredState(UGOAPWorldState* DesiredState) const;
 };
