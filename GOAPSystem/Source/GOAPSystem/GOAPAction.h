@@ -26,8 +26,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Cost = 1.0f;
 
+    // Check if the action can be performed (based on preconditions)
     UFUNCTION(BlueprintCallable, Category = "GOAP")
     virtual bool CheckProceduralPreconditions(AActor* Agent) PURE_VIRTUAL(UGoapAction::CheckProceduralPreconditions, return false;);
+
+    // Each action needs a PerformAction function that defines its execution logic
     UFUNCTION(BlueprintCallable, Category = "GOAP")
     virtual void PerformAction(AActor* Agent) PURE_VIRTUAL(UGoapAction::PerformAction, );;
 };
