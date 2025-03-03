@@ -10,42 +10,117 @@ TArray<UGOAPAction*> UGOAPPlanner::CreatePlan(AGOAPAgent* Agent, UGOAPWorldState
 {
     TArray<UGOAPAction*> OpenSet;
     TArray<UGOAPAction*> FinalPlan;
-    TMap<UGOAPAction*, float> GScore;
-    TMap<UGOAPAction*, UGOAPAction*> CameFrom;
+    TMap<UGOAPAction*, float> BaseActionCost;
+    TMap<UGOAPAction*, UGOAPAction*> ComingFromAction;
 
     for (UGOAPAction* Action : Agent->GetAvailableActions())
     {
         if (Action->CheckProceduralPreconditions(Agent))
         {
             OpenSet.Add(Action);
-            GScore.Add(Action, Action->ActionDefaultCost);
+            BaseActionCost.Add(Action, Action->ActionDefaultCost);
+            
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    15.f,
+                    FColor::Blue,
+                    FString::Printf(TEXT("Found Available Action: %s | Cost: %.2f"), *Action->GetName(), Action->ActionDefaultCost)
+                );
+            }
         }
     }
 
     while (OpenSet.Num() > 0)
     {
-        OpenSet.Sort([&](const UGOAPAction& A, const UGOAPAction& B)
+        if (GEngine)
+        {
+            for (UGOAPAction* Action : OpenSet)
             {
-                return (GScore[&A] + CalculateHeuristicCost(CurrentState, Goal->DesiredState)) < (GScore[&B] + CalculateHeuristicCost(CurrentState, Goal->DesiredState));
-            });
+                float HeuristicCost = CalculateHeuristicCost(CurrentState, Goal->DesiredState);
+                float TotalCost = BaseActionCost[Action] + HeuristicCost;
+
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    15.f,
+                    FColor::Cyan,
+                    FString::Printf(TEXT("Action: %s | Base Cost: %.2f | Heuristic: %.2f | Total: %.2f"), *Action->GetName(), BaseActionCost[Action], HeuristicCost, TotalCost)
+                );
+            }
+        }
+
+        OpenSet.Sort([&](const UGOAPAction& A, const UGOAPAction& B)
+        {
+            return (BaseActionCost[&A] + CalculateHeuristicCost(CurrentState, Goal->DesiredState)) < (BaseActionCost[&B] + CalculateHeuristicCost(CurrentState, Goal->DesiredState));
+        });
 
         UGOAPAction* CurrentAction = OpenSet[0];
         OpenSet.RemoveAt(0);
 
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 
+                15.f, 
+                FColor::Yellow,
+                FString::Printf(TEXT("Selected Action: %s"), *CurrentAction->GetName())
+            );
+        }
+
+        // Clone state for this action before applying effects
+        UGOAPWorldState* ActionState = DuplicateObject(CurrentState, nullptr);
+
         // Apply the action effects
         for (auto& Effect : CurrentAction->Effects)
         {
-            CurrentState->State.Add(Effect.Key, Effect.Value);
+            ActionState->State.Add(Effect.Key, Effect.Value);
         }
 
-        // If goal is achieved, construct the final plan
-        if (CurrentState->MatchesDesiredState(Goal->DesiredState))
+        /*
+        if (GEngine)
         {
-            while (CameFrom.Contains(CurrentAction))
+            GEngine->AddOnScreenDebugMessage(
+                -1, 
+                15.f, 
+                FColor::Red,
+                FString::Printf(TEXT("State after %s: %s"), *CurrentAction->GetName(), *ActionState->ToString())
+            );
+        }
+        */
+
+        // If goal is achieved, construct the final plan
+        if (ActionState->MatchesDesiredState(Goal->DesiredState))
+        {
+            if (GEngine)
             {
-                FinalPlan.Insert(CurrentAction, 0);
-                CurrentAction = CameFrom[CurrentAction];
+                GEngine->AddOnScreenDebugMessage(
+                    -1, 
+                    15.f, 
+                    FColor::Magenta,
+                    FString::Printf(TEXT("Goal Achieved! Constructing Plan..."))
+                );
             }
+
+
+            while (ComingFromAction.Contains(CurrentAction))
+            {
+                if (GEngine)
+                {
+                    GEngine->AddOnScreenDebugMessage(
+                        -1,
+                        15.f,
+                        FColor::Blue,
+                        FString::Printf(TEXT("Adding Action To Plan: %s"), *CurrentAction->GetName())
+                    );
+                }
+                FinalPlan.Insert(CurrentAction, 0);
+                CurrentAction = ComingFromAction[CurrentAction];
+            }
+
+            FinalPlan.Insert(CurrentAction, 0);  // In case only one action completes the goal
+
+
             return FinalPlan;
         }
 
@@ -55,12 +130,12 @@ TArray<UGOAPAction*> UGOAPPlanner::CreatePlan(AGOAPAgent* Agent, UGOAPWorldState
             if (!Neighbor->CheckProceduralPreconditions(Agent))
                 continue;
 
-            float TentativeGScore = GScore[CurrentAction] + Neighbor->ActionDefaultCost;
+            float TentativeGScore = BaseActionCost[CurrentAction] + Neighbor->ActionDefaultCost;
 
-            if (!GScore.Contains(Neighbor) || TentativeGScore < GScore[Neighbor])
+            if (!BaseActionCost.Contains(Neighbor) || TentativeGScore < BaseActionCost[Neighbor])
             {
-                CameFrom.Add(Neighbor, CurrentAction);
-                GScore.Add(Neighbor, TentativeGScore);
+                ComingFromAction.Add(Neighbor, CurrentAction);
+                BaseActionCost.Add(Neighbor, TentativeGScore);
                 OpenSet.Add(Neighbor);
             }
         }

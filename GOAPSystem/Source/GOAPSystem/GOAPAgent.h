@@ -6,10 +6,12 @@
 #include "GameFramework/Character.h"
 #include "GOAPAgent.generated.h"
 
+
 class UGOAPPlanner;
 class UGOAPAction;
 class UGOAPWorldState;
 class UGOAPGoal;
+class AAIController;
 
 UCLASS()
 class GOAPSYSTEM_API AGOAPAgent : public ACharacter
@@ -40,6 +42,9 @@ public:
 
 	// Function to get the available actions
 	const TArray<UGOAPAction*>& GetAvailableActions() const { return AvailableActions; }
+
+	UPROPERTY()
+	AAIController* AIController;
 
 private:
 	UPROPERTY()

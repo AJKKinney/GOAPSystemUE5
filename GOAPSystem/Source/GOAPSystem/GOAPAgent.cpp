@@ -6,6 +6,7 @@
 #include "GOAPPlanner.h"
 #include "GOAPWorldState.h"
 #include "GOAPGoal.h"
+#include "AIController.h"
 
 // Sets default values
 AGOAPAgent::AGOAPAgent()
@@ -22,6 +23,22 @@ void AGOAPAgent::BeginPlay()
 {
 	Super::BeginPlay();
 
+    if (!AIController)
+    {
+        AIController = GetWorld()->SpawnActor<AAIController>(AAIController::StaticClass());
+        AIController -> Possess(this);
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(
+                -1,
+                15.f,
+                FColor::Emerald,
+                FString("AI Possessed by AI Controller")
+            );
+        }
+    }
+
     if (CurrentWorldState)
     {
         UGOAPGoal* Goal = FindValidGoal();
@@ -29,6 +46,16 @@ void AGOAPAgent::BeginPlay()
         if (ActionPlanner)
         {
             // Generate plan using A*
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    15.f,
+                    FColor::Blue,
+                    FString(TEXT("Generating an Action Plan"))
+                );
+            }
+
             CurrentActionPlan = ActionPlanner->CreatePlan(this, CurrentWorldState, Goal);
             CurrentActionIndex = 0;
         }
@@ -50,6 +77,16 @@ UGOAPGoal* AGOAPAgent::FindValidGoal()
     {
         if (Goal->IsAchievable(CurrentWorldState))
         {
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    15.f,
+                    FColor::Blue,
+                    FString::Printf(TEXT("Found Valid Goal: %s"), *Goal->GetName())
+                );
+            }
+
             return Goal;
         }
     }
