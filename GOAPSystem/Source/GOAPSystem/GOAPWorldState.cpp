@@ -9,7 +9,7 @@
 void UGOAPWorldState::SetInitialWorldStateValues()
 {
 
-    if (State.Contains("PlayernNearby") == false)
+    if (State.Contains("PlayerNearby") == false)
     {
         State.Add("PlayerNearby", false);  // AI wants to be near the player
     }

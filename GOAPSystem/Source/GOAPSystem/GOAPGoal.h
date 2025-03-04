@@ -23,6 +23,7 @@ public:
     UGOAPGoal();
 
     // The world state the agent wants to achieve (could be a TMap or a more complex structure)
+    UPROPERTY()
     UGOAPWorldState* DesiredState{};
 
     // Virtual function to check if the goal is valid to pursue

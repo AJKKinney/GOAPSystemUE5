@@ -12,10 +12,9 @@ UFollowPlayerGoal::UFollowPlayerGoal()
 
 bool UFollowPlayerGoal::IsAchievable(const UGOAPWorldState* CurrentState)
 {
-
-    if (DesiredState->State.Contains("PlayernNearby") == true)
+    if (DesiredState->State.Contains("PlayerNearby") == true)
     {
-        if (CurrentState->State["PlayerNearby"] == false)
+        if (*CurrentState->State.Find("PlayerNearby") == false)
         {
             return true;
         }
