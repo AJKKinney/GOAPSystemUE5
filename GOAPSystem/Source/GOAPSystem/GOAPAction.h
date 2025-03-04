@@ -9,6 +9,9 @@
 /**
  * 
  */
+UDELEGATE(BlueprintCallable)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActionCompleted, bool, bWasSuccessful);
+
 UCLASS(Abstract, Blueprintable)
 class GOAPSYSTEM_API UGOAPAction : public UObject
 {
@@ -33,4 +36,6 @@ public:
     // Each action needs a PerformAction function that defines its execution logic
     UFUNCTION(BlueprintCallable, Category = "GOAP")
     virtual void PerformAction(AActor* Agent) PURE_VIRTUAL(UGoapAction::PerformAction, );;
+
+    FOnActionCompleted OnActionCompleted;
 };

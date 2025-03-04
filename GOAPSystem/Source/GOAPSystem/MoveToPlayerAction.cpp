@@ -6,7 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "GOAPWorldState.h"
-#include "AIController.h"
+#include "Navigation/PathFollowingComponent.h"
+
 
 UMoveToPlayerAction::UMoveToPlayerAction()
 {
@@ -21,6 +22,25 @@ UMoveToPlayerAction::UMoveToPlayerAction()
 
 bool UMoveToPlayerAction::CheckProceduralPreconditions(AActor* Agent)
 {
+    ACharacter* Character = Cast<ACharacter>(Agent);
+    if (!Character) return false;
+
+    AActor* Player = GetWorld()->GetFirstPlayerController();
+    if (!Player) return false;
+
+    AGOAPAgent* GOAPAgent = Cast<AGOAPAgent>(Agent);
+    if (!GOAPAgent) return false;
+
+    if (FVector::Dist(Character->GetActorLocation(), Player->GetActorLocation()) < 200.0f)
+    {
+        // Update world state to reflect that player is nearby
+
+        if (GOAPAgent && GOAPAgent->CurrentWorldState)
+        {
+            GOAPAgent->CurrentWorldState->SetState("PlayerNearby", true);
+        }
+    }
+
     return true;//Agent->GetWorld()->GetTimeSeconds() > 0;
 }
 
@@ -43,8 +63,27 @@ void UMoveToPlayerAction::PerformAction(AActor* Agent)
     if (!Player) return;
 
     // Get the AIController
-    AAIController* AIController = Cast<AAIController>(Character->GetController());
+    AIController = Cast<AAIController>(Character->GetController());
     if (!AIController) return;
+
+    AGOAPAgent* GOAPAgent = Cast<AGOAPAgent>(Agent);
+    if (!GOAPAgent) return;
+
+
+        FAIMoveRequest MoveRequest;
+        MoveRequest.SetGoalActor(Player);
+        MoveRequest.SetUsePathfinding(true);
+        MoveRequest.SetAcceptanceRadius(50.0f); // Stops AI when close
+
+        FNavPathSharedPtr NavPath;
+
+        AIController->ReceiveMoveCompleted.AddDynamic(this, &ThisClass::OnMoveCompleted);
+        AIController->MoveTo(MoveRequest, &NavPath);
+
+}
+
+void UMoveToPlayerAction::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
 
     if (GEngine)
     {
@@ -52,25 +91,13 @@ void UMoveToPlayerAction::PerformAction(AActor* Agent)
             -1,
             15.f,
             FColor::Blue,
-            FString(TEXT("Has Necessary Components"))
+            FString::Printf(TEXT("Completed Move"))
         );
     }
 
-    // Move the AI character to the player's location
-    AIController->MoveToActor(Player);
+    bool bSuccess = (Result == EPathFollowingResult::Success);
 
-    /*
-    // Check if close enough
-    if (FVector::Dist(Character->GetActorLocation(), Player->GetActorLocation()) < 200.0f)
-    {
-        // Update world state to reflect that player is nearby
-        AGOAPAgent* GOAPAgent = Cast<AGOAPAgent>(Agent);
+    OnActionCompleted.Broadcast(bSuccess);
 
-        // Update Current World State
-        if (GOAPAgent && GOAPAgent->CurrentWorldState)
-        {
-            GOAPAgent->CurrentWorldState->State.Add("PlayerNearby", true);
-        }
-    }
-    */
+    AIController->ReceiveMoveCompleted.RemoveDynamic(this, &ThisClass::OnMoveCompleted);
 }

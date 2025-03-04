@@ -16,7 +16,11 @@ class GOAPSYSTEM_API UGOAPWorldState : public UObject
 	GENERATED_BODY()
 	
 public:
+	void SetInitialWorldStateValues();
+
 	TMap<FString, bool> State{};
 
 	bool MatchesDesiredState(UGOAPWorldState* DesiredState) const;
+
+	void SetState(FString Key, bool bStateValue);
 };

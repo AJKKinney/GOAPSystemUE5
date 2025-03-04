@@ -32,6 +32,7 @@ TArray<UGOAPAction*> UGOAPPlanner::CreatePlan(AGOAPAgent* Agent, UGOAPWorldState
         }
     }
 
+
     while (OpenSet.Num() > 0)
     {
         if (GEngine)
@@ -102,18 +103,18 @@ TArray<UGOAPAction*> UGOAPPlanner::CreatePlan(AGOAPAgent* Agent, UGOAPWorldState
                 );
             }
 
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    15.f,
+                    FColor::Blue,
+                    FString::Printf(TEXT("Adding Action To Plan: %s"), *CurrentAction->GetName())
+                );
+            }
 
             while (ComingFromAction.Contains(CurrentAction))
             {
-                if (GEngine)
-                {
-                    GEngine->AddOnScreenDebugMessage(
-                        -1,
-                        15.f,
-                        FColor::Blue,
-                        FString::Printf(TEXT("Adding Action To Plan: %s"), *CurrentAction->GetName())
-                    );
-                }
                 FinalPlan.Insert(CurrentAction, 0);
                 CurrentAction = ComingFromAction[CurrentAction];
             }

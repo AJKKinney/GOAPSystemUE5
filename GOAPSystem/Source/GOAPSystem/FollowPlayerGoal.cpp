@@ -6,10 +6,20 @@
 UFollowPlayerGoal::UFollowPlayerGoal()
 {
     DesiredState = NewObject<UGOAPWorldState>();
-    DesiredState->State.Add("PlayerNearby", true);  // AI wants to be near the player
+
+    DesiredState->SetState("PlayerNearby", true);  // AI wants to be near the player
 }
 
 bool UFollowPlayerGoal::IsAchievable(const UGOAPWorldState* CurrentState)
 {
-    return true; // Always achievable
-}
+
+    if (DesiredState->State.Contains("PlayernNearby") == true)
+    {
+        if (CurrentState->State["PlayerNearby"] == false)
+        {
+            return true;
+        }
+    }
+
+    return true;
+}   

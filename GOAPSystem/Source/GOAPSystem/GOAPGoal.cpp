@@ -2,3 +2,8 @@
 
 #include "GOAPGoal.h"
 
+UGOAPGoal::UGOAPGoal()
+{
+
+}
+

@@ -46,17 +46,25 @@ public:
 	UPROPERTY()
 	AAIController* AIController;
 
+	UPROPERTY()
+	UGOAPWorldState* CurrentWorldState;
+
 private:
 	UPROPERTY()
 	UGOAPPlanner* ActionPlanner;
 
-	UPROPERTY()
-	UGOAPWorldState* CurrentWorldState;
-
 	TArray<UGOAPAction*> CurrentActionPlan;
 	int32 CurrentActionIndex;
 
+	bool bAwaitingNextAction = false;
+	bool bPreviousActionWasSuccessful = false;
 
 	UGOAPGoal* FindValidGoal();
+	
+	void StartNewGoal();
+
 	void ExecuteNextAction();
+
+	UFUNCTION()
+	void HandleActionCompleted(bool bWasSuccessful);
 };

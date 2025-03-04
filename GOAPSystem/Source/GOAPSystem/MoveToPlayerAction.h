@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GOAPAction.h"
+#include "AIController.h"
 #include "MoveToPlayerAction.generated.h"
 
 /**
@@ -20,5 +21,12 @@ public:
 	virtual bool CheckProceduralPreconditions(AActor* Agent) override;
 
 	virtual void PerformAction(AActor* Agent) override;
+
+	UFUNCTION()
+	void OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result);
+
+private:
+
+	AAIController* AIController;
 
 };
